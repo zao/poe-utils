@@ -1,0 +1,9 @@
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/microsoft/vcpkg.git
+[submodule "dep/gli"]
+	path = dep/gli
+	url = https://github.com/g-truc/gli.git
+[submodule "dep/glm"]
+	path = dep/glm
+	url = https://github.com/g-truc/glm.git
