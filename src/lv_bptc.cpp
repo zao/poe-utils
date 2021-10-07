@@ -93,9 +93,9 @@ struct BitStream {
     BitStream(uint8_t const *byte_data, size_t bit_start, size_t bit_count)
         : data(byte_data), byte_start(0), bit_start(bit_start), remaining_bits(bit_count), seen_error(false) {
         if (int excess = bit_start / 8) {
-            byte_start += excess;
-            bit_start %= 8;
+            this->byte_start += excess;
         }
+        this->bit_start %= 8;
     }
 
     template <typename P> bool read_bits(P &out, size_t bit_count) {
@@ -333,12 +333,16 @@ struct BC7Fields {
     }
 
     uint8_t alpha_index_width() const {
-        return index_selection ? params.index_bits_per_element : params.secondary_index_bits_per_element;
+        bool use_primary = !params.secondary_index_bits_per_element || (params.index_selection_bits && index_selection);
+        return use_primary ? params.index_bits_per_element : params.secondary_index_bits_per_element;
     }
 
     uint8_t const *color_indices() const { return index_selection ? secondary_indices : primary_indices; }
 
-    uint8_t const *alpha_indices() const { return index_selection ? primary_indices : secondary_indices; }
+    uint8_t const *alpha_indices() const {
+        bool use_primary = !params.secondary_index_bits_per_element || (params.index_selection_bits && index_selection);
+        return use_primary ? primary_indices : secondary_indices;
+    }
 
     BC7Mode params{};
     uint8_t partition{};
@@ -374,6 +378,7 @@ struct BC7Endpoints {
     }
 
     uint8_t expand_value(uint8_t value, int value_count, uint8_t p, int p_count) {
+#if 0
         uint8_t ret = value << p_count;
         if (p_count) {
             ret |= p;
@@ -384,6 +389,21 @@ struct BC7Endpoints {
             ret |= ret >> precision;
         }
         return ret;
+#else
+        uint8_t ret = value;
+        if (p_count) {
+            ret <<= p_count;
+            ret |= p;
+        }
+        int high_slack = 8 - value_count - p_count;
+        if (high_slack) {
+            int low_skip = value_count - high_slack;
+            ret <<= high_slack;
+            uint8_t high_part = value >> low_skip;
+            ret |= high_part;
+        }
+        return ret;
+#endif
     }
 
     bc7_color_bits colors[3][2]{};
@@ -413,70 +433,9 @@ bool lv_bptc_decode_bc7(int width, int height, void const *src_data, size_t src_
     for (size_t block_y = 0; block_y < block_h; ++block_y) {
         for (size_t block_x = 0; block_x < block_w; ++block_x) {
             uint8_t const *block = base + 16 * (block_x + block_w * block_y);
-            uint8_t mode_byte = block[0];
-            if (mode_byte == 0) {
-                return false; // reserved and forbidden
-            }
-            uint8_t mode = bc7_mode(mode_byte);
-            BC7Mode params = bc7_modes[mode];
-
-            // Field order:
-            //  partition number, rotation, index selection, color, alpha,
-            //  per-endpoint p-bit, shared p-bit, primary indices, secondary indices
-
-            BC7Fields fields(params, block);
-
-            BC7Endpoints endpoints(params, fields);
-
             BC7PixelBlock pixels{};
-            BC7Partition partition{};
-            if (params.subsets == 2) {
-                partition = bc7_partition_2[fields.partition];
-            } else if (params.subsets == 3) {
-                partition = bc7_partition_3[fields.partition];
-            }
-
-            uint8_t *p = pixels.data();
-            for (size_t idx = 0; idx < 16; ++idx) {
-                int subset = partition[idx];
-                uint8_t r = 0x40;
-                uint8_t g = 0x40;
-                uint8_t b = 0x40;
-                uint8_t a = 0xFF;
-
-                {
-                    auto color_index = fields.color_indices()[idx];
-                    auto color_index_width = fields.color_index_width();
-                    r = bc7_interpolate(endpoints.colors[subset][0][0], endpoints.colors[subset][1][0], color_index,
-                                        color_index_width);
-                    g = bc7_interpolate(endpoints.colors[subset][0][1], endpoints.colors[subset][1][1], color_index,
-                                        color_index_width);
-                    b = bc7_interpolate(endpoints.colors[subset][0][2], endpoints.colors[subset][1][2], color_index,
-                                        color_index_width);
-                    if (fields.alpha_bits) {
-                        auto alpha_index = fields.alpha_indices()[idx];
-                        auto alpha_index_width = fields.alpha_index_width();
-                        a = bc7_interpolate(endpoints.alphas[subset][0], endpoints.alphas[subset][1], alpha_index,
-                                            alpha_index_width);
-                    }
-                    switch (fields.rotation) {
-                    case 1:
-                        std::swap(a, r);
-                        break;
-                    case 2:
-                        std::swap(a, g);
-                        break;
-                    case 3:
-                        std::swap(a, b);
-                        break;
-                    }
-                }
-
-                p[0] = r;
-                p[1] = g;
-                p[2] = b;
-                p[3] = a;
-                p += 4;
+            if (!lv_bptc_decode_block_bc7(block, pixels.data())) {
+                return false;
             }
             blit_block_4x4(dst_data, width, height, block_x, block_y, pixels);
         }
@@ -496,4 +455,80 @@ bool lv_bptc_decode(lv_bptc_format format, int width, int height, void const *sr
         return lv_bptc_decode_bc7(width, height, src_data, src_size, dst_data, dst_size);
     }
     return false;
+}
+
+int lv_bptc_block_mode(void const *src_data, size_t src_size, int block_x, int block_y, int block_w) {
+    size_t block_idx = block_x + block_y * block_w;
+    size_t byte_offset = block_idx * 16;
+    auto *src_ptr = (uint8_t const *)src_data;
+    return bc7_mode(src_ptr[byte_offset]);
+}
+
+bool lv_bptc_decode_block_bc7(uint8_t const *block, uint8_t *pixels) {
+    uint8_t mode_byte = block[0];
+    if (mode_byte == 0) {
+        memset(pixels, 0, 16 * 4);
+        return true;
+    }
+    uint8_t mode = bc7_mode(mode_byte);
+    BC7Mode params = bc7_modes[mode];
+
+    // Field order:
+    //  partition number, rotation, index selection, color, alpha,
+    //  per-endpoint p-bit, shared p-bit, primary indices, secondary indices
+
+    BC7Fields fields(params, block);
+
+    BC7Endpoints endpoints(params, fields);
+
+    BC7Partition partition{};
+    if (params.subsets == 2) {
+        partition = bc7_partition_2[fields.partition];
+    } else if (params.subsets == 3) {
+        partition = bc7_partition_3[fields.partition];
+    }
+
+    uint8_t *p = pixels;
+    for (size_t idx = 0; idx < 16; ++idx) {
+        int subset = partition[idx];
+        uint8_t r = 0x00;
+        uint8_t g = 0x00;
+        uint8_t b = 0x00;
+        uint8_t a = 0xFF;
+
+        {
+            auto color_index = fields.color_indices()[idx];
+            auto color_index_width = fields.color_index_width();
+            r = bc7_interpolate(endpoints.colors[subset][0][0], endpoints.colors[subset][1][0], color_index,
+                                color_index_width);
+            g = bc7_interpolate(endpoints.colors[subset][0][1], endpoints.colors[subset][1][1], color_index,
+                                color_index_width);
+            b = bc7_interpolate(endpoints.colors[subset][0][2], endpoints.colors[subset][1][2], color_index,
+                                color_index_width);
+            if (fields.alpha_bits) {
+                auto alpha_index = fields.alpha_indices()[idx];
+                auto alpha_index_width = fields.alpha_index_width();
+                a = bc7_interpolate(endpoints.alphas[subset][0], endpoints.alphas[subset][1], alpha_index,
+                                    alpha_index_width);
+            }
+            switch (fields.rotation) {
+            case 1:
+                std::swap(a, r);
+                break;
+            case 2:
+                std::swap(a, g);
+                break;
+            case 3:
+                std::swap(a, b);
+                break;
+            }
+        }
+
+        p[0] = r;
+        p[1] = g;
+        p[2] = b;
+        p[3] = a;
+        p += 4;
+    }
+    return true;
 }
