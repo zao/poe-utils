@@ -91,12 +91,8 @@ static uint8_t bc7_debug_colors[8][4] = {
 
 struct BitStream {
     BitStream(uint8_t const *byte_data, size_t bit_start, size_t bit_count)
-        : data(byte_data), byte_start(0), bit_start(bit_start), remaining_bits(bit_count), seen_error(false) {
-        if (int excess = bit_start / 8) {
-            this->byte_start += excess;
-        }
-        this->bit_start %= 8;
-    }
+        : data(byte_data), byte_start(bit_start / 8), bit_start(bit_start % 8), remaining_bits(bit_count),
+          seen_error(false) {}
 
     template <typename P> bool read_bits(P &out, size_t bit_count) {
         out = P{};
