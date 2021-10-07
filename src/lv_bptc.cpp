@@ -99,10 +99,10 @@ static uint8_t bc7_debug_colors[8][4] = {
 
 struct BitStream {
 	BitStream(uint8_t const* byte_data, size_t bit_start, size_t bit_count)
-	: data(byte_data), bit_start(bit_start), remaining_bits(bit_count), seen_error(false)
+	: data(byte_data), byte_start(0), bit_start(bit_start), remaining_bits(bit_count), seen_error(false)
 	{
-		if (int start_byte = bit_start / 8) {
-			data += start_byte;
+		if (int excess = bit_start / 8) {
+			byte_start += excess;
 			bit_start %= 8;
 		}
 	}
@@ -123,7 +123,7 @@ struct BitStream {
 			size_t copy_width = (std::min)(remaining_in_byte, bit_count);
 
 			// Extract and write the bit range from current byte
-			uint8_t bits = (*data >> bit_start) & BIT_MASKS[copy_width];
+			uint8_t bits = (data[byte_start] >> bit_start) & BIT_MASKS[copy_width];
 			out |= (P)(bits) << out_off;
 			out_off += copy_width;
 			remaining_bits -= copy_width;
@@ -131,14 +131,15 @@ struct BitStream {
 
 			// Advance bit position in byte, wrap to next byte if needed
 			bit_start = (bit_start + copy_width) % 8;
-			if (bit_count == 0) {
-				++data;
+			if (bit_start == 0) {
+				++byte_start;
 			}
 		}
 		return true;
 	}
 
 	uint8_t const* data;
+	size_t byte_start;
 	size_t bit_start;
 	size_t remaining_bits;
 	bool seen_error;
@@ -342,14 +343,30 @@ using bc7_alpha_bits = uint8_t;
 using bc7_color_bits = std::array<uint8_t, 3>;
 
 struct BC7Fields {
-	BC7Fields(BC7Mode params, uint8_t const* block) {
-		params = params;
+	BC7Fields(BC7Mode params, uint8_t const* block) 
+		: params(params)
+	{
+		if (0) {
+		for (size_t i = 0; i < 8 * 8; ++i) {
+			fprintf(stderr, "%x", i % 16);
+			if (i % 8 == 7) {
+				fprintf(stderr, " ");
+			}
+		}
+		fprintf(stderr, "\n");
+		for (size_t i = 0; i < 16; ++i) {
+			for (size_t j = 0; j < 8; ++j) {
+				fprintf(stderr, "%d", (block[i] >> j) & 1);
+			}
+			fprintf(stderr, "%s", ((i%8) == 7) ? "\n" : " ");
+		}
+		}
 		uint8_t mode_shift = params.mode + 1;
 		BitStream bs(block, mode_shift, 128 - mode_shift);
 		bs.read_bits(partition, params.partition_bits);
 		
-		std::array<uint8_t, 16> subset_partition{};
-		uint8_t anchors[3]{};
+		BC7Partition subset_partition{};
+		std::array<uint8_t, 3> anchors{};
 		if (params.subsets == 2) {
 			subset_partition = bc7_partition_2[partition];
 			anchors[1] = bc7_anchor_2_of_2[partition];

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <optional>
 #include <gli/gli.hpp>
-#include <gli/convert.hpp>
 #include <gli/load.hpp>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
@@ -59,6 +58,21 @@ void ConvertCommand(std::deque<std::string> args) {
 		throw std::runtime_error("could not load texture");
 	}
 
+	{
+		auto extent = srcTex.extent(srcTex.base_level());
+		if (!cropSpec) {
+			CropSpec cs;
+			cs.x = 0;
+			cs.y = 0;
+			cs.w = extent.x;
+			cs.h = extent.y;
+			cropSpec = cs;
+		}
+		else if (cropSpec->x + cropSpec->w > extent.x || cropSpec->y + cropSpec->h > extent.y) {
+			throw std::runtime_error("crop specification exceeds image size");
+		}
+	}
+
 	lv_bptc_format compFormat = LV_BPTC_FORMAT_UNKNOWN;
 	switch (srcTex.format()) {
 	case gli::FORMAT_RGB_BP_UFLOAT_BLOCK16: compFormat = LV_BPTC_FORMAT_BC6H_UF16; break;
@@ -67,14 +81,14 @@ void ConvertCommand(std::deque<std::string> args) {
 	case gli::FORMAT_RGBA_BP_SRGB_BLOCK16: compFormat = LV_BPTC_FORMAT_BC7_UNORM; break;
 	}
 	int coarsest_level = srcTex.max_level();
-	int finest_level = coarsest_level - (std::min<int>)(3, srcTex.levels());
-	finest_level = srcTex.base_level();
-	for (int level = coarsest_level; level >= finest_level; --level) {
+	int finest_level = srcTex.base_level();
+	{
+		int level = finest_level;
 		auto extent = srcTex.extent(level);
 		auto size = srcTex.size(level);
 		auto data = srcTex.data(0, 0, level);
 		std::cerr << "level " << level << ": " << extent.x << "x" << extent.y << std::endl;
-		if (compFormat != LV_BPTC_FORMAT_UNKNOWN) {
+		if (compFormat == LV_BPTC_FORMAT_BC7_UNORM) {
 			size_t outputSize = lv_bptc_output_size(compFormat, extent.x, extent.y, data, size);
 			std::vector<uint8_t> dstData(outputSize);
 			std::cerr << "Storage needed for decoded level: " << outputSize << " bytes\n";
@@ -84,7 +98,12 @@ void ConvertCommand(std::deque<std::string> args) {
 			// int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
 			bool has_alpha = (compFormat == LV_BPTC_FORMAT_BC7_UNORM);
 			int comp = has_alpha ? 4 : 3;
-			stbi_write_png(dstPathSub.c_str(), extent.x, extent.y, comp, dstData.data(), comp * extent.x);
+			{
+				size_t dstStride = comp * extent.x;
+				// stbi_write_png(dstPathSub.c_str(), extent.x, extent.y, comp, dstData.data(), dstStride);
+				uint8_t const* firstPixel = dstData.data() + dstStride * cropSpec->y + comp * cropSpec->x;
+				stbi_write_png(dstPath.c_str(), cropSpec->w, cropSpec->h, comp, firstPixel, dstStride);
+			}
 		}
 	}
 }
