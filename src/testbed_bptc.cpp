@@ -15,28 +15,249 @@
 #include <string>
 #include <vector>
 
+std::map<gli::format, char const *> known_formats{
+    {gli::FORMAT_UNDEFINED, "FORMAT_UNDEFINED"},
+    {gli::FORMAT_RG4_UNORM_PACK8, "FORMAT_RG4_UNORM_PACK8"},
+    {gli::FORMAT_RGBA4_UNORM_PACK16, "FORMAT_RGBA4_UNORM_PACK16"},
+    {gli::FORMAT_BGRA4_UNORM_PACK16, "FORMAT_BGRA4_UNORM_PACK16"},
+    {gli::FORMAT_R5G6B5_UNORM_PACK16, "FORMAT_R5G6B5_UNORM_PACK16"},
+    {gli::FORMAT_B5G6R5_UNORM_PACK16, "FORMAT_B5G6R5_UNORM_PACK16"},
+    {gli::FORMAT_RGB5A1_UNORM_PACK16, "FORMAT_RGB5A1_UNORM_PACK16"},
+    {gli::FORMAT_BGR5A1_UNORM_PACK16, "FORMAT_BGR5A1_UNORM_PACK16"},
+    {gli::FORMAT_A1RGB5_UNORM_PACK16, "FORMAT_A1RGB5_UNORM_PACK16"},
+    {gli::FORMAT_R8_UNORM_PACK8, "FORMAT_R8_UNORM_PACK8"},
+    {gli::FORMAT_R8_SNORM_PACK8, "FORMAT_R8_SNORM_PACK8"},
+    {gli::FORMAT_R8_USCALED_PACK8, "FORMAT_R8_USCALED_PACK8"},
+    {gli::FORMAT_R8_SSCALED_PACK8, "FORMAT_R8_SSCALED_PACK8"},
+    {gli::FORMAT_R8_UINT_PACK8, "FORMAT_R8_UINT_PACK8"},
+    {gli::FORMAT_R8_SINT_PACK8, "FORMAT_R8_SINT_PACK8"},
+    {gli::FORMAT_R8_SRGB_PACK8, "FORMAT_R8_SRGB_PACK8"},
+    {gli::FORMAT_RG8_UNORM_PACK8, "FORMAT_RG8_UNORM_PACK8"},
+    {gli::FORMAT_RG8_SNORM_PACK8, "FORMAT_RG8_SNORM_PACK8"},
+    {gli::FORMAT_RG8_USCALED_PACK8, "FORMAT_RG8_USCALED_PACK8"},
+    {gli::FORMAT_RG8_SSCALED_PACK8, "FORMAT_RG8_SSCALED_PACK8"},
+    {gli::FORMAT_RG8_UINT_PACK8, "FORMAT_RG8_UINT_PACK8"},
+    {gli::FORMAT_RG8_SINT_PACK8, "FORMAT_RG8_SINT_PACK8"},
+    {gli::FORMAT_RG8_SRGB_PACK8, "FORMAT_RG8_SRGB_PACK8"},
+    {gli::FORMAT_RGB8_UNORM_PACK8, "FORMAT_RGB8_UNORM_PACK8"},
+    {gli::FORMAT_RGB8_SNORM_PACK8, "FORMAT_RGB8_SNORM_PACK8"},
+    {gli::FORMAT_RGB8_USCALED_PACK8, "FORMAT_RGB8_USCALED_PACK8"},
+    {gli::FORMAT_RGB8_SSCALED_PACK8, "FORMAT_RGB8_SSCALED_PACK8"},
+    {gli::FORMAT_RGB8_UINT_PACK8, "FORMAT_RGB8_UINT_PACK8"},
+    {gli::FORMAT_RGB8_SINT_PACK8, "FORMAT_RGB8_SINT_PACK8"},
+    {gli::FORMAT_RGB8_SRGB_PACK8, "FORMAT_RGB8_SRGB_PACK8"},
+    {gli::FORMAT_BGR8_UNORM_PACK8, "FORMAT_BGR8_UNORM_PACK8"},
+    {gli::FORMAT_BGR8_SNORM_PACK8, "FORMAT_BGR8_SNORM_PACK8"},
+    {gli::FORMAT_BGR8_USCALED_PACK8, "FORMAT_BGR8_USCALED_PACK8"},
+    {gli::FORMAT_BGR8_SSCALED_PACK8, "FORMAT_BGR8_SSCALED_PACK8"},
+    {gli::FORMAT_BGR8_UINT_PACK8, "FORMAT_BGR8_UINT_PACK8"},
+    {gli::FORMAT_BGR8_SINT_PACK8, "FORMAT_BGR8_SINT_PACK8"},
+    {gli::FORMAT_BGR8_SRGB_PACK8, "FORMAT_BGR8_SRGB_PACK8"},
+    {gli::FORMAT_RGBA8_UNORM_PACK8, "FORMAT_RGBA8_UNORM_PACK8"},
+    {gli::FORMAT_RGBA8_SNORM_PACK8, "FORMAT_RGBA8_SNORM_PACK8"},
+    {gli::FORMAT_RGBA8_USCALED_PACK8, "FORMAT_RGBA8_USCALED_PACK8"},
+    {gli::FORMAT_RGBA8_SSCALED_PACK8, "FORMAT_RGBA8_SSCALED_PACK8"},
+    {gli::FORMAT_RGBA8_UINT_PACK8, "FORMAT_RGBA8_UINT_PACK8"},
+    {gli::FORMAT_RGBA8_SINT_PACK8, "FORMAT_RGBA8_SINT_PACK8"},
+    {gli::FORMAT_RGBA8_SRGB_PACK8, "FORMAT_RGBA8_SRGB_PACK8"},
+    {gli::FORMAT_BGRA8_UNORM_PACK8, "FORMAT_BGRA8_UNORM_PACK8"},
+    {gli::FORMAT_BGRA8_SNORM_PACK8, "FORMAT_BGRA8_SNORM_PACK8"},
+    {gli::FORMAT_BGRA8_USCALED_PACK8, "FORMAT_BGRA8_USCALED_PACK8"},
+    {gli::FORMAT_BGRA8_SSCALED_PACK8, "FORMAT_BGRA8_SSCALED_PACK8"},
+    {gli::FORMAT_BGRA8_UINT_PACK8, "FORMAT_BGRA8_UINT_PACK8"},
+    {gli::FORMAT_BGRA8_SINT_PACK8, "FORMAT_BGRA8_SINT_PACK8"},
+    {gli::FORMAT_BGRA8_SRGB_PACK8, "FORMAT_BGRA8_SRGB_PACK8"},
+    {gli::FORMAT_RGBA8_UNORM_PACK32, "FORMAT_RGBA8_UNORM_PACK32"},
+    {gli::FORMAT_RGBA8_SNORM_PACK32, "FORMAT_RGBA8_SNORM_PACK32"},
+    {gli::FORMAT_RGBA8_USCALED_PACK32, "FORMAT_RGBA8_USCALED_PACK32"},
+    {gli::FORMAT_RGBA8_SSCALED_PACK32, "FORMAT_RGBA8_SSCALED_PACK32"},
+    {gli::FORMAT_RGBA8_UINT_PACK32, "FORMAT_RGBA8_UINT_PACK32"},
+    {gli::FORMAT_RGBA8_SINT_PACK32, "FORMAT_RGBA8_SINT_PACK32"},
+    {gli::FORMAT_RGBA8_SRGB_PACK32, "FORMAT_RGBA8_SRGB_PACK32"},
+    {gli::FORMAT_RGB10A2_UNORM_PACK32, "FORMAT_RGB10A2_UNORM_PACK32"},
+    {gli::FORMAT_RGB10A2_SNORM_PACK32, "FORMAT_RGB10A2_SNORM_PACK32"},
+    {gli::FORMAT_RGB10A2_USCALED_PACK32, "FORMAT_RGB10A2_USCALED_PACK32"},
+    {gli::FORMAT_RGB10A2_SSCALED_PACK32, "FORMAT_RGB10A2_SSCALED_PACK32"},
+    {gli::FORMAT_RGB10A2_UINT_PACK32, "FORMAT_RGB10A2_UINT_PACK32"},
+    {gli::FORMAT_RGB10A2_SINT_PACK32, "FORMAT_RGB10A2_SINT_PACK32"},
+    {gli::FORMAT_BGR10A2_UNORM_PACK32, "FORMAT_BGR10A2_UNORM_PACK32"},
+    {gli::FORMAT_BGR10A2_SNORM_PACK32, "FORMAT_BGR10A2_SNORM_PACK32"},
+    {gli::FORMAT_BGR10A2_USCALED_PACK32, "FORMAT_BGR10A2_USCALED_PACK32"},
+    {gli::FORMAT_BGR10A2_SSCALED_PACK32, "FORMAT_BGR10A2_SSCALED_PACK32"},
+    {gli::FORMAT_BGR10A2_UINT_PACK32, "FORMAT_BGR10A2_UINT_PACK32"},
+    {gli::FORMAT_BGR10A2_SINT_PACK32, "FORMAT_BGR10A2_SINT_PACK32"},
+    {gli::FORMAT_R16_UNORM_PACK16, "FORMAT_R16_UNORM_PACK16"},
+    {gli::FORMAT_R16_SNORM_PACK16, "FORMAT_R16_SNORM_PACK16"},
+    {gli::FORMAT_R16_USCALED_PACK16, "FORMAT_R16_USCALED_PACK16"},
+    {gli::FORMAT_R16_SSCALED_PACK16, "FORMAT_R16_SSCALED_PACK16"},
+    {gli::FORMAT_R16_UINT_PACK16, "FORMAT_R16_UINT_PACK16"},
+    {gli::FORMAT_R16_SINT_PACK16, "FORMAT_R16_SINT_PACK16"},
+    {gli::FORMAT_R16_SFLOAT_PACK16, "FORMAT_R16_SFLOAT_PACK16"},
+    {gli::FORMAT_RG16_UNORM_PACK16, "FORMAT_RG16_UNORM_PACK16"},
+    {gli::FORMAT_RG16_SNORM_PACK16, "FORMAT_RG16_SNORM_PACK16"},
+    {gli::FORMAT_RG16_USCALED_PACK16, "FORMAT_RG16_USCALED_PACK16"},
+    {gli::FORMAT_RG16_SSCALED_PACK16, "FORMAT_RG16_SSCALED_PACK16"},
+    {gli::FORMAT_RG16_UINT_PACK16, "FORMAT_RG16_UINT_PACK16"},
+    {gli::FORMAT_RG16_SINT_PACK16, "FORMAT_RG16_SINT_PACK16"},
+    {gli::FORMAT_RG16_SFLOAT_PACK16, "FORMAT_RG16_SFLOAT_PACK16"},
+    {gli::FORMAT_RGB16_UNORM_PACK16, "FORMAT_RGB16_UNORM_PACK16"},
+    {gli::FORMAT_RGB16_SNORM_PACK16, "FORMAT_RGB16_SNORM_PACK16"},
+    {gli::FORMAT_RGB16_USCALED_PACK16, "FORMAT_RGB16_USCALED_PACK16"},
+    {gli::FORMAT_RGB16_SSCALED_PACK16, "FORMAT_RGB16_SSCALED_PACK16"},
+    {gli::FORMAT_RGB16_UINT_PACK16, "FORMAT_RGB16_UINT_PACK16"},
+    {gli::FORMAT_RGB16_SINT_PACK16, "FORMAT_RGB16_SINT_PACK16"},
+    {gli::FORMAT_RGB16_SFLOAT_PACK16, "FORMAT_RGB16_SFLOAT_PACK16"},
+    {gli::FORMAT_RGBA16_UNORM_PACK16, "FORMAT_RGBA16_UNORM_PACK16"},
+    {gli::FORMAT_RGBA16_SNORM_PACK16, "FORMAT_RGBA16_SNORM_PACK16"},
+    {gli::FORMAT_RGBA16_USCALED_PACK16, "FORMAT_RGBA16_USCALED_PACK16"},
+    {gli::FORMAT_RGBA16_SSCALED_PACK16, "FORMAT_RGBA16_SSCALED_PACK16"},
+    {gli::FORMAT_RGBA16_UINT_PACK16, "FORMAT_RGBA16_UINT_PACK16"},
+    {gli::FORMAT_RGBA16_SINT_PACK16, "FORMAT_RGBA16_SINT_PACK16"},
+    {gli::FORMAT_RGBA16_SFLOAT_PACK16, "FORMAT_RGBA16_SFLOAT_PACK16"},
+    {gli::FORMAT_R32_UINT_PACK32, "FORMAT_R32_UINT_PACK32"},
+    {gli::FORMAT_R32_SINT_PACK32, "FORMAT_R32_SINT_PACK32"},
+    {gli::FORMAT_R32_SFLOAT_PACK32, "FORMAT_R32_SFLOAT_PACK32"},
+    {gli::FORMAT_RG32_UINT_PACK32, "FORMAT_RG32_UINT_PACK32"},
+    {gli::FORMAT_RG32_SINT_PACK32, "FORMAT_RG32_SINT_PACK32"},
+    {gli::FORMAT_RG32_SFLOAT_PACK32, "FORMAT_RG32_SFLOAT_PACK32"},
+    {gli::FORMAT_RGB32_UINT_PACK32, "FORMAT_RGB32_UINT_PACK32"},
+    {gli::FORMAT_RGB32_SINT_PACK32, "FORMAT_RGB32_SINT_PACK32"},
+    {gli::FORMAT_RGB32_SFLOAT_PACK32, "FORMAT_RGB32_SFLOAT_PACK32"},
+    {gli::FORMAT_RGBA32_UINT_PACK32, "FORMAT_RGBA32_UINT_PACK32"},
+    {gli::FORMAT_RGBA32_SINT_PACK32, "FORMAT_RGBA32_SINT_PACK32"},
+    {gli::FORMAT_RGBA32_SFLOAT_PACK32, "FORMAT_RGBA32_SFLOAT_PACK32"},
+    {gli::FORMAT_R64_UINT_PACK64, "FORMAT_R64_UINT_PACK64"},
+    {gli::FORMAT_R64_SINT_PACK64, "FORMAT_R64_SINT_PACK64"},
+    {gli::FORMAT_R64_SFLOAT_PACK64, "FORMAT_R64_SFLOAT_PACK64"},
+    {gli::FORMAT_RG64_UINT_PACK64, "FORMAT_RG64_UINT_PACK64"},
+    {gli::FORMAT_RG64_SINT_PACK64, "FORMAT_RG64_SINT_PACK64"},
+    {gli::FORMAT_RG64_SFLOAT_PACK64, "FORMAT_RG64_SFLOAT_PACK64"},
+    {gli::FORMAT_RGB64_UINT_PACK64, "FORMAT_RGB64_UINT_PACK64"},
+    {gli::FORMAT_RGB64_SINT_PACK64, "FORMAT_RGB64_SINT_PACK64"},
+    {gli::FORMAT_RGB64_SFLOAT_PACK64, "FORMAT_RGB64_SFLOAT_PACK64"},
+    {gli::FORMAT_RGBA64_UINT_PACK64, "FORMAT_RGBA64_UINT_PACK64"},
+    {gli::FORMAT_RGBA64_SINT_PACK64, "FORMAT_RGBA64_SINT_PACK64"},
+    {gli::FORMAT_RGBA64_SFLOAT_PACK64, "FORMAT_RGBA64_SFLOAT_PACK64"},
+    {gli::FORMAT_RG11B10_UFLOAT_PACK32, "FORMAT_RG11B10_UFLOAT_PACK32"},
+    {gli::FORMAT_RGB9E5_UFLOAT_PACK32, "FORMAT_RGB9E5_UFLOAT_PACK32"},
+    {gli::FORMAT_D16_UNORM_PACK16, "FORMAT_D16_UNORM_PACK16"},
+    {gli::FORMAT_D24_UNORM_PACK32, "FORMAT_D24_UNORM_PACK32"},
+    {gli::FORMAT_D32_SFLOAT_PACK32, "FORMAT_D32_SFLOAT_PACK32"},
+    {gli::FORMAT_S8_UINT_PACK8, "FORMAT_S8_UINT_PACK8"},
+    {gli::FORMAT_D16_UNORM_S8_UINT_PACK32, "FORMAT_D16_UNORM_S8_UINT_PACK32"},
+    {gli::FORMAT_D24_UNORM_S8_UINT_PACK32, "FORMAT_D24_UNORM_S8_UINT_PACK32"},
+    {gli::FORMAT_D32_SFLOAT_S8_UINT_PACK64, "FORMAT_D32_SFLOAT_S8_UINT_PACK64"},
+    {gli::FORMAT_RGB_DXT1_UNORM_BLOCK8, "FORMAT_RGB_DXT1_UNORM_BLOCK8"},
+    {gli::FORMAT_RGB_DXT1_SRGB_BLOCK8, "FORMAT_RGB_DXT1_SRGB_BLOCK8"},
+    {gli::FORMAT_RGBA_DXT1_UNORM_BLOCK8, "FORMAT_RGBA_DXT1_UNORM_BLOCK8"},
+    {gli::FORMAT_RGBA_DXT1_SRGB_BLOCK8, "FORMAT_RGBA_DXT1_SRGB_BLOCK8"},
+    {gli::FORMAT_RGBA_DXT3_UNORM_BLOCK16, "FORMAT_RGBA_DXT3_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_DXT3_SRGB_BLOCK16, "FORMAT_RGBA_DXT3_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_DXT5_UNORM_BLOCK16, "FORMAT_RGBA_DXT5_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_DXT5_SRGB_BLOCK16, "FORMAT_RGBA_DXT5_SRGB_BLOCK16"},
+    {gli::FORMAT_R_ATI1N_UNORM_BLOCK8, "FORMAT_R_ATI1N_UNORM_BLOCK8"},
+    {gli::FORMAT_R_ATI1N_SNORM_BLOCK8, "FORMAT_R_ATI1N_SNORM_BLOCK8"},
+    {gli::FORMAT_RG_ATI2N_UNORM_BLOCK16, "FORMAT_RG_ATI2N_UNORM_BLOCK16"},
+    {gli::FORMAT_RG_ATI2N_SNORM_BLOCK16, "FORMAT_RG_ATI2N_SNORM_BLOCK16"},
+    {gli::FORMAT_RGB_BP_UFLOAT_BLOCK16, "FORMAT_RGB_BP_UFLOAT_BLOCK16"},
+    {gli::FORMAT_RGB_BP_SFLOAT_BLOCK16, "FORMAT_RGB_BP_SFLOAT_BLOCK16"},
+    {gli::FORMAT_RGBA_BP_UNORM_BLOCK16, "FORMAT_RGBA_BP_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_BP_SRGB_BLOCK16, "FORMAT_RGBA_BP_SRGB_BLOCK16"},
+    {gli::FORMAT_RGB_ETC2_UNORM_BLOCK8, "FORMAT_RGB_ETC2_UNORM_BLOCK8"},
+    {gli::FORMAT_RGB_ETC2_SRGB_BLOCK8, "FORMAT_RGB_ETC2_SRGB_BLOCK8"},
+    {gli::FORMAT_RGBA_ETC2_UNORM_BLOCK8, "FORMAT_RGBA_ETC2_UNORM_BLOCK8"},
+    {gli::FORMAT_RGBA_ETC2_SRGB_BLOCK8, "FORMAT_RGBA_ETC2_SRGB_BLOCK8"},
+    {gli::FORMAT_RGBA_ETC2_UNORM_BLOCK16, "FORMAT_RGBA_ETC2_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ETC2_SRGB_BLOCK16, "FORMAT_RGBA_ETC2_SRGB_BLOCK16"},
+    {gli::FORMAT_R_EAC_UNORM_BLOCK8, "FORMAT_R_EAC_UNORM_BLOCK8"},
+    {gli::FORMAT_R_EAC_SNORM_BLOCK8, "FORMAT_R_EAC_SNORM_BLOCK8"},
+    {gli::FORMAT_RG_EAC_UNORM_BLOCK16, "FORMAT_RG_EAC_UNORM_BLOCK16"},
+    {gli::FORMAT_RG_EAC_SNORM_BLOCK16, "FORMAT_RG_EAC_SNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_4X4_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_4X4_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_4X4_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_4X4_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_5X4_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_5X4_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_5X4_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_5X4_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_5X5_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_5X5_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_5X5_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_5X5_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_6X5_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_6X5_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_6X5_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_6X5_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_6X6_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_6X6_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_6X6_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_6X6_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_8X5_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_8X5_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_8X5_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_8X5_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_8X6_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_8X6_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_8X6_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_8X6_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_8X8_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_8X8_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_8X8_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_8X8_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X5_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_10X5_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X5_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_10X5_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X6_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_10X6_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X6_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_10X6_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X8_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_10X8_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X8_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_10X8_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X10_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_10X10_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_10X10_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_10X10_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_12X10_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_12X10_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_12X10_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_12X10_SRGB_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_12X12_UNORM_BLOCK16, "FORMAT_RGBA_ASTC_12X12_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ASTC_12X12_SRGB_BLOCK16, "FORMAT_RGBA_ASTC_12X12_SRGB_BLOCK16"},
+    {gli::FORMAT_RGB_PVRTC1_8X8_UNORM_BLOCK32, "FORMAT_RGB_PVRTC1_8X8_UNORM_BLOCK32"},
+    {gli::FORMAT_RGB_PVRTC1_8X8_SRGB_BLOCK32, "FORMAT_RGB_PVRTC1_8X8_SRGB_BLOCK32"},
+    {gli::FORMAT_RGB_PVRTC1_16X8_UNORM_BLOCK32, "FORMAT_RGB_PVRTC1_16X8_UNORM_BLOCK32"},
+    {gli::FORMAT_RGB_PVRTC1_16X8_SRGB_BLOCK32, "FORMAT_RGB_PVRTC1_16X8_SRGB_BLOCK32"},
+    {gli::FORMAT_RGBA_PVRTC1_8X8_UNORM_BLOCK32, "FORMAT_RGBA_PVRTC1_8X8_UNORM_BLOCK32"},
+    {gli::FORMAT_RGBA_PVRTC1_8X8_SRGB_BLOCK32, "FORMAT_RGBA_PVRTC1_8X8_SRGB_BLOCK32"},
+    {gli::FORMAT_RGBA_PVRTC1_16X8_UNORM_BLOCK32, "FORMAT_RGBA_PVRTC1_16X8_UNORM_BLOCK32"},
+    {gli::FORMAT_RGBA_PVRTC1_16X8_SRGB_BLOCK32, "FORMAT_RGBA_PVRTC1_16X8_SRGB_BLOCK32"},
+    {gli::FORMAT_RGBA_PVRTC2_4X4_UNORM_BLOCK8, "FORMAT_RGBA_PVRTC2_4X4_UNORM_BLOCK8"},
+    {gli::FORMAT_RGBA_PVRTC2_4X4_SRGB_BLOCK8, "FORMAT_RGBA_PVRTC2_4X4_SRGB_BLOCK8"},
+    {gli::FORMAT_RGBA_PVRTC2_8X4_UNORM_BLOCK8, "FORMAT_RGBA_PVRTC2_8X4_UNORM_BLOCK8"},
+    {gli::FORMAT_RGBA_PVRTC2_8X4_SRGB_BLOCK8, "FORMAT_RGBA_PVRTC2_8X4_SRGB_BLOCK8"},
+    {gli::FORMAT_RGB_ETC_UNORM_BLOCK8, "FORMAT_RGB_ETC_UNORM_BLOCK8"},
+    {gli::FORMAT_RGB_ATC_UNORM_BLOCK8, "FORMAT_RGB_ATC_UNORM_BLOCK8"},
+    {gli::FORMAT_RGBA_ATCA_UNORM_BLOCK16, "FORMAT_RGBA_ATCA_UNORM_BLOCK16"},
+    {gli::FORMAT_RGBA_ATCI_UNORM_BLOCK16, "FORMAT_RGBA_ATCI_UNORM_BLOCK16"},
+    {gli::FORMAT_L8_UNORM_PACK8, "FORMAT_L8_UNORM_PACK8"},
+    {gli::FORMAT_A8_UNORM_PACK8, "FORMAT_A8_UNORM_PACK8"},
+    {gli::FORMAT_LA8_UNORM_PACK8, "FORMAT_LA8_UNORM_PACK8"},
+    {gli::FORMAT_L16_UNORM_PACK16, "FORMAT_L16_UNORM_PACK16"},
+    {gli::FORMAT_A16_UNORM_PACK16, "FORMAT_A16_UNORM_PACK16"},
+    {gli::FORMAT_LA16_UNORM_PACK16, "FORMAT_LA16_UNORM_PACK16"},
+    {gli::FORMAT_BGR8_UNORM_PACK32, "FORMAT_BGR8_UNORM_PACK32"},
+    {gli::FORMAT_BGR8_SRGB_PACK32, "FORMAT_BGR8_SRGB_PACK32"},
+    {gli::FORMAT_RG3B2_UNORM_PACK8, "FORMAT_RG3B2_UNORM_PACK8"},
+};
+
 int main(int argc, char **argv) {
-    if (argc != 4) {
+    if (argc != 2) {
         return 1;
     }
     std::string srcPath = argv[1];
-    std::string dstPath = argv[2];
-    std::string refPath = argv[3];
 
     gli::texture2d srcTex{gli::load(srcPath)};
-    int refWidth{}, refHeight{}, refComp{};
-    std::shared_ptr<uint8_t[]> refTex((uint8_t *)stbi_load(refPath.c_str(), &refWidth, &refHeight, &refComp, 4), &free);
 
-    auto extent = srcTex.extent();
-    if (extent.x != refWidth || extent.y != refHeight) {
+    gli::format fmt = srcTex.format();
+    for (auto &[fmt, txt] : known_formats) {
+        // fprintf(stderr, "%d: %s\n", fmt, txt);
+    }
+    // if (fmt != gli::FORMAT_RGBA_BP_UNORM_BLOCK16 && fmt != gli::FORMAT_RGBA_BP_SRGB_BLOCK16) {
+    {
+        if (auto I = known_formats.find(fmt); I != known_formats.end()) {
+            fprintf(stderr, "unhandled known format %s (%d): %s\n", I->second, fmt, srcPath.c_str());
+        } else {
+            fprintf(stderr, "unhandled unknown format %d: %s\n", fmt, srcPath.c_str());
+        }
         return 1;
     }
+
+    auto extent = srcTex.extent();
 
     auto srcData = srcTex.data(0, 0, 0);
     auto srcSize = srcTex.size(0);
     std::vector<uint8_t> dstData(4 * extent.x * extent.y);
-    bool success =
-        lv_bptc_decode(LV_BPTC_FORMAT_BC7_UNORM, extent.x, extent.y, srcData, srcSize, dstData.data(), dstData.size());
+    // bool success =
+    //     lv_bptc_decode(LV_BPTC_FORMAT_BC7_UNORM, extent.x, extent.y, srcData, srcSize, dstData.data(),
+    //     dstData.size());
 
     struct BlockCoord {
         int x, y;
@@ -47,97 +268,18 @@ int main(int argc, char **argv) {
     int blockW = (extent.x + 3) / 4;
     int blockH = (extent.y + 3) / 4;
 
-    auto *refBegin = (uint8_t const *)refTex.get();
-    auto refEnd = refBegin + refWidth * refHeight * 4;
-
-    auto *dstBegin = dstData.data();
-    auto dstEnd = dstBegin + dstData.size();
-
-    if (refEnd - refBegin != dstEnd - dstBegin) {
-        return 1;
-    }
-
-    std::map<BlockCoord, int> differingBlockModes;
-    std::map<int, std::set<BlockCoord>> compDiffByMode[4];
-    std::map<int, std::set<BlockCoord>> diffByMode;
-
-    auto refPtr = refBegin;
-    auto dstPtr = dstBegin;
-    while (true) {
-        auto [refHit, dstHit] = std::mismatch(refPtr, refEnd, dstPtr, dstEnd);
-        if (refHit == refEnd) {
-            break;
-        }
-        auto byteOffset = std::distance(refBegin, refHit);
-        auto rowStride = extent.x * 4;
-        auto pixelY = byteOffset / rowStride;
-        auto pixelX = (byteOffset % rowStride) / 4;
-        BlockCoord hit{
-            .x = (int)(pixelX / 4),
-            .y = (int)(pixelY / 4),
-        };
-        uint8_t comp = (int)(byteOffset % 4);
-        auto mode = lv_bptc_block_mode(srcData, srcSize, hit.x, hit.y, blockW);
-        differingBlockModes.insert({hit, mode});
-        compDiffByMode[comp][mode].insert(hit);
-        diffByMode[mode].insert(hit);
-        refPtr = std::next(refHit);
-        dstPtr = std::next(dstHit);
-    }
-
-#if 0
-    if (differingBlockModes.size()) {
-        fprintf(stdout, "Differing blocks:\n");
-        for (auto [diff, mode] : differingBlockModes) {
-            fprintf(stdout, "x: %d, y: %d, mode: %d\n", diff.x, diff.y, mode);
-        }
-        fprintf(stdout, "---\n");
-    } else {
-        fprintf(stdout, "No differing blocks.\n");
-    }
-#endif
-
-    std::map<int, size_t> numBlocksByMode;
-    for (size_t blockY = 0; blockY < blockH; ++blockY) {
-        for (size_t blockX = 0; blockX < blockW; ++blockX) {
-            int mode = lv_bptc_block_mode(srcData, srcSize, blockX, blockY, blockW);
-            ++numBlocksByMode[mode];
-        }
-    }
-
-    char compNames[] = {'R', 'G', 'B', 'A'};
-    fprintf(stdout, "Mismatching blocks:\n");
-    for (size_t mode = 0; mode < 8; ++mode) {
-        auto count = numBlocksByMode[mode];
-        auto differing = diffByMode[mode].size();
-        fprintf(stdout, "mode %d: pop: %d, any diff: %d", mode, count, differing);
-        for (int comp = 0; comp < 4; ++comp) {
-            auto diff = compDiffByMode[comp][mode].size();
-            fprintf(stdout, ", %c: %d", compNames[comp], diff);
-        }
-        fprintf(stdout, "\n");
-    }
-    fprintf(stdout, "---\n");
-#if 0
-    if (!diffByMode.empty()) {
-        fprintf(stdout, "Differing blocks by mode:\n");
-        for (auto &[mode, blocks] : diffByMode) {
-            fprintf(stdout, "mode: %d, [", mode);
-            fprintf(stdout, "%d blocks", blocks.size());
-#if 0
-            char const* sep = "";
-            for (auto block : blocks) {
-                fprintf(stdout, "%s{%d, %d}", sep, block.x, block.y);
-                sep = ", ";
+    for (int blockY = 0; blockY < blockH; ++blockY) {
+        for (int blockX = 0; blockX < blockW; ++blockX) {
+            uint8_t const *blockData = (uint8_t const *)srcData + 16 * (blockX + blockY * blockW);
+            std::array<uint8_t, 4 * 4 * 4> my_pixels{}, their_pixels{};
+            lv_bptc_decode_block_bc7(blockData, my_pixels.data());
+            DecompressBlockBC7(blockData, their_pixels.data());
+            if (my_pixels != their_pixels) {
+                fprintf(stderr, "Decode mismatch in block (%d, %d) of file %s\n", blockX, blockY, srcPath.c_str());
+                return 1;
             }
-#endif
-            fprintf(stdout, "]\n");
         }
-        fprintf(stdout, "---\n");
-    } else {
-        fprintf(stdout, "No differing blocks by mode.\n");
     }
-#endif
 
     auto print_block_header = [](FILE *fh, uint8_t mode) {
         struct BC7Mode {
@@ -210,69 +352,14 @@ int main(int argc, char **argv) {
         }
         fprintf(fh, "\n");
     };
-
-    for (auto &coord : diffByMode[7]) {
-        uint8_t const *blockData = (uint8_t const *)srcData + 16 * (coord.x + coord.y * blockW);
-        print_block_bits(stdout, blockData);
-        
-        uint8_t their_pixels[16 * 4]{};
-        DecompressBlockBC7(blockData, their_pixels);
-
-        uint8_t my_pixels[16 * 4]{};
-        lv_bptc_decode_block_bc7(blockData, my_pixels);
-        auto print_result = [](FILE* fh, auto pixels) {
-            uint8_t const* p = pixels;
-            for (int y = 0; y < 4; ++y) {
-                for (int x = 0; x < 4; ++x) {
-                    fprintf(fh, "%02X%02X%02X%02X ", p[3], p[0], p[1], p[2]);
-                    p += 4;
-                }
-                fprintf(fh, "\n");
+    auto print_result = [](FILE *fh, auto pixels) {
+        uint8_t const *p = pixels;
+        for (int y = 0; y < 4; ++y) {
+            for (int x = 0; x < 4; ++x) {
+                fprintf(fh, "%02X%02X%02X%02X ", p[3], p[0], p[1], p[2]);
+                p += 4;
             }
-        };
-        fprintf(stdout, "CMP:\n");
-        print_result(stdout, their_pixels);
-        fprintf(stdout, "---\n");
-        fprintf(stdout, "LV:\n");
-        print_result(stdout, my_pixels);
-        break;
-    }
-    return 0;
-
-    fprintf(stdout, "                                                                                                  "
-                    "              1111 11111111 11111111 11111111\n");
-    fprintf(stdout, "           111111 11112222 22222233 33333333 44444444 44555555 55556666 66666677 77777777 "
-                    "88888888 88999999 99990000 00000011 11111111 22222222\n");
-    fprintf(stdout, "01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123 45678901 23456789 "
-                    "01234567 89012345 67890123 45678901 23456789 01234567\n");
-    fprintf(stdout, "--------------------------------------------------------------------------------------------------"
-                    "---------------------------------------------\n");
-    for (int i = 0; i < 8; ++i) {
-        //        print_block_header(stdout, i);
-    }
-
-    int debug_mode = 7;
-    print_block_header(stdout, debug_mode);
-    fprintf(stdout, "--------------------------------------------------------------------------------------------------"
-                    "---------------------------------------------\n");
-    std::optional<int> cap;
-    cap = 6;
-    std::array<uint8_t, 16> set_all, unset_all;
-    std::fill_n(set_all.data(), 16, 0xFFu);
-    std::fill_n(unset_all.data(), 16, 0xFFu);
-    for (auto &coord : diffByMode[debug_mode]) {
-        uint8_t const *blockData = (uint8_t const *)srcData + 16 * (coord.x + coord.y * blockW);
-        for (int i = 0; i < 16; ++i) {
-            set_all[i] &= blockData[i];
-            unset_all[i] &= ~blockData[i];
+            fprintf(fh, "\n");
         }
-        print_block_bits(stdout, blockData);
-        if (cap && !--*cap) {
-            break;
-        }
-    }
-    fprintf(stdout, "--------------------------------------------------------------------------------------------------"
-                    "---------------------------------------------\n");
-    print_block_bits(stdout, set_all.data());
-    print_block_bits(stdout, unset_all.data());
+    };
 }

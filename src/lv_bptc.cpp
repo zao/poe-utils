@@ -247,7 +247,7 @@ struct BC7Fields {
     BC7Fields(BC7Mode params, uint8_t const *block) : params(params) {
         if (0) {
             for (size_t i = 0; i < 8 * 8; ++i) {
-                fprintf(stderr, "%x", i % 16);
+                fprintf(stderr, "%x", (unsigned int)i % 16);
                 if (i % 8 == 7) {
                     fprintf(stderr, " ");
                 }
@@ -436,7 +436,7 @@ bool lv_bptc_decode_bc7(int width, int height, void const *src_data, size_t src_
             blit_block_4x4(dst_data, width, height, block_x, block_y, pixels);
         }
     }
-    return false;
+    return true;
 }
 
 bool lv_bptc_decode(lv_bptc_format format, int width, int height, void const *src_data, size_t src_size, void *dst_data,
