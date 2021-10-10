@@ -5,6 +5,7 @@ add_subdirectory(dep/cmp_core)
 target_include_directories(CMP_Core INTERFACE dep/cmp_core/source)
 
 add_subdirectory(dep/fmt)
+add_subdirectory(dep/gsl)
 
 add_library(glm INTERFACE)
 target_include_directories(glm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/dep/glm)
@@ -19,10 +20,10 @@ target_link_libraries(gli INTERFACE glm)
 
 add_library(lv-bptc STATIC src/lv_bptc.cpp src/lv_bptc.h)
 
-add_executable(process-image src/process_image_main.cpp)
+add_executable(process-image src/process_image_main.cpp src/gli_format_names.cpp src/gli_format_names.h)
 target_compile_features(process-image PRIVATE cxx_std_17)
 target_include_directories(process-image PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dep)
-target_link_libraries(process-image PRIVATE gli stb CMP_Core)
+target_link_libraries(process-image PRIVATE fmt gli GSL stb CMP_Core)
 
 if (BUILD_TESTBEDS)
     add_executable(testbed-bptc src/testbed_bptc.cpp src/lv_bptc.cpp src/lv_bptc.h)
