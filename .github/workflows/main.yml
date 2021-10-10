@@ -10,7 +10,7 @@ env:
 
 jobs:
   build:
-    os: windows-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
         with:
